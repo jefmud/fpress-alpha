@@ -1,15 +1,15 @@
-from __main__ import app
+from . import app
 import os
 from flask import (g, flash, redirect, render_template, request, send_file, session, url_for)
-from forms import CSRF
-import database
-import details
+from .forms import CSRF
+from .database import initialize, generate_meta_info
+from .details import stylesheets
 import json
 import time
-from utils import admin_required, login_required
+from .utils import admin_required, login_required
 from werkzeug.security import generate_password_hash
 from werkzeug.utils import secure_filename
-from zipper import Zipper
+from .zipper import Zipper
 
 def posix_path(path, prefix=""):
     """convert a path to posix compatible path"""
@@ -48,7 +48,7 @@ def admin_users():
     s = request.args.get('s')
     if s:
         return redirect( url_for('search', s=s) )
-    
+
     users = g.db.users.find()
     return render_template('admin_users.html', users=users)
 
@@ -57,7 +57,7 @@ def admin_users():
 def user_add():
     s = request.args.get('s')
     if s:
-        return redirect( url_for('search', s=s) )    
+        return redirect( url_for('search', s=s) )
     """ADMIN-ONLY view to add a user"""
     return redirect(url_for('user_edit'))
 
@@ -73,7 +73,7 @@ def user_edit(user_id=None):
         if user is None:
             flash("No such user with id={}".format(user_id), "warning")
             return redirect(url_for('admin_user'))
-    
+
     form = CSRF()
     if form.validate_on_submit():
         username = request.form.get('username')
@@ -82,19 +82,19 @@ def user_edit(user_id=None):
         password = request.form.get('password')
         is_active = request.form.get('is_active') == 'on'
         is_admin = request.form.get('is_admin') == 'on'
-        
+
         if len(username) > 0 and len(password) > 0:
             user['username'] = username
             user['displayname'] = displayname
-            
+
             if user.get('password') != password:
                 # password changed, rehash the password
                 user['password'] = generate_password_hash(password)
-            
+
             user['email'] = email
             user['is_active'] = is_active
             user['is_admin'] = is_admin
-        
+
             if user_id:
                 g.db.users.update_one({'_id':user_id}, user)
                 flash("User information changed", category="success")
@@ -104,7 +104,7 @@ def user_edit(user_id=None):
             return redirect(url_for('admin_users'))
         else:
             flash('Username and password must be filled in', category="danger")
-    
+
     return render_template('admin_user_edit.html', user=user, form=form)
 
 @app.route('/_admin', methods=('GET','POST'), strict_slashes=False)
@@ -114,9 +114,9 @@ def admin():
     s = request.args.get('s')
     if s:
         return redirect( url_for('search', s=s) )
-    
+
     meta = g.db.meta.find_one()
-    
+
     """view for basic admin tasks"""
     form = CSRF()
     if form.validate_on_submit():
@@ -132,15 +132,15 @@ def admin():
         meta['editor'] = editor
         if stylesheet != 'site-default':
             meta['stylesheet'] = stylesheet
-     
+
         g.db.meta.update_one({'_id':meta.get('_id')}, meta)
         # ensure the g vars match the current setting
         g.editor = editor
         g.brand = brand
         g.stylesheet = stylesheet
         return redirect(url_for('admin'))
-    
-    return render_template('admin.html', form=form, stylesheets=details.stylesheets)
+
+    return render_template('admin.html', form=form, stylesheets=stylesheets)
 
 @app.route('/_admin/page_export')
 @admin_required
@@ -151,7 +151,7 @@ def admin_page_export():
     with open(filename,'w') as fout:
         json.dump(pages, fout)
     return send_file(filename, as_attachment=True)
-    
+
 @app.route('/_admin/export_database')
 @admin_required
 def admin_export_database():
@@ -176,7 +176,7 @@ def admin_export_uploads():
 @app.route('/_admin/import_database')
 def admin_import_database():
     return render_template('admin_database_upload.html')
-    
+
 @app.route('/_admin/upload_database', methods=['POST'])
 @admin_required
 def database_upload_handler():
@@ -193,7 +193,7 @@ def database_upload_handler():
         if file.filename == '':
             flash('No selected file')
             return redirect(request.url)
-        
+
         if file and '.json' in file.filename.lower():
             # we are not checking the json, probably should look
             # to see if this is really a flaskpress backup!
@@ -211,10 +211,10 @@ def database_upload_handler():
                 # rename the current database JSON file a unique name!
                 os.rename('./tinydb/flaskpress.json', './tinydb/flaskpress.json.backup.{}'.format(time.time()))
                 file.save(pathname)
-                
+
                 # connect to the database again and initialize
-                database.initialize(app)
-                database.generate_meta_info()                
+                initialize(app)
+                generate_meta_info()
             except Exception as e:
                 print(e)
                 flash("Something went wrong here-- please let administrator know", category="danger")
@@ -235,7 +235,7 @@ def user_delete(user_id, hard_delete=False):
     if user is None:
         flash('No user with id={}'.format(user_id), category="danger")
         return redirect('admin_user')
-    
+
     if user['username'] != session.get('username'):
         if hard_delete:
             # reassign all pages to admin who is deleting
@@ -243,7 +243,7 @@ def user_delete(user_id, hard_delete=False):
             for page in pages:
                 page['owner'] = session.get('username')
                 g.db.pages.update_one({'_id':page['_id']}, page)
-            
+
             g.db.users.remove(user_key)
             flash("User fully deleted, {} pages reassigned to {}.".format(len(pages), g.username), category="primary")
         else:
@@ -252,12 +252,12 @@ def user_delete(user_id, hard_delete=False):
             flash("User deactivated, but still present in database", category="primary")
     else:
         flash("CANNOT DELETE/DEACTIVATE an actively logged in account.", category="danger")
-    
+
     # redirect to caller or index page if we deleted on an edit view
     if request.referrer == None:
         return redirect(url_for('site', path=None))
     else:
-        return redirect(request.referrer)  
+        return redirect(request.referrer)
 
 @app.route('/_admin/pages', methods=('GET','POST'))
 @admin_required
@@ -268,7 +268,7 @@ def admin_pages():
     s = request.args.get('s')
     if s:
         return redirect( url_for('search', s=s) )
-    
+
     # find all pages
     pages = g.db.pages.find()
     return render_template('admin_pages.html', pages=pages)
@@ -284,7 +284,7 @@ def file_delete(file_id):
     if f is None:
         flash("Unable to locate file id={}".format(file_id), category="danger")
         return redirect(url_for('admin_files'))
-    
+
     pathname = os.path.join(app.config['UPLOAD_FOLDER'], f.get('filepath'))
     if f.get('owner') == session['username'] or session['is_admin']:
         g.db.files.remove(file_key)
@@ -295,12 +295,12 @@ def file_delete(file_id):
             flash("Error: problems removing physical file. Check log for details.", category="warning")
     else:
         flash('You are not authorized to remove this file.', category="danger")
-    
+
     # handle redirect to referer
     if request.referrer == None:
         return redirect(url_for('index'))
     else:
-        return redirect(url_for('admin_files'))  
+        return redirect(url_for('admin_files'))
 
 @app.route('/_admin/file_edit/<file_id>', methods=['GET','POST'])
 @admin_required
@@ -310,12 +310,12 @@ def file_edit(file_id):
     s = request.args.get('s')
     if s:
         return redirect( url_for('search', s=s) )
-    
+
     file_key = {'_id':file_id}
     file = g.db.files.find_one(file_key)
     if file is None:
         flash("File with id={} was NOT found".format(file_id), category="danger")
-  
+
     if request.method == 'POST':
         if file.get('owner')== session['username'] or session['is_admin']:
             title = request.form.get('title')
@@ -328,10 +328,10 @@ def file_edit(file_id):
                 flash('Title must not be blank.', category="warning")
         else:
             flash("You are not authorized to edit/delete this object.", category="danger")
-        
+
     return render_template('file_edit.html',file=file)
-    
-  
+
+
 @app.route('/_admin/files')
 @admin_required
 def admin_files():
@@ -342,6 +342,6 @@ def admin_files():
     s = request.args.get('s')
     if s:
         return redirect( url_for('search', s=s) )
-    
+
     files = g.db.files.find()
     return render_template('admin_files.html', files=files)

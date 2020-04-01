@@ -1,7 +1,7 @@
-from __main__ import app
+from . import app
 
 from flask import redirect, render_template, url_for, session, flash, g
-from forms import UsernamePasswordForm
+from .forms import UsernamePasswordForm
 from werkzeug.security import check_password_hash
 
 @app.route('/login', methods=['GET','POST'])

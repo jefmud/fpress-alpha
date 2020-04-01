@@ -1,6 +1,6 @@
 # initialize.py
-from users import create_user
-from utils import token_generator
+from .users import create_user
+from .utils import token_generator
 import os
 
 # Declare database as a TinyMongo Client
@@ -10,25 +10,25 @@ DB = TinyMongoClient().flaskpress
 def initialize(app):
     """initialize the app, initialize configuration before app starts"""
     # we will modify the app config object some
-    
+
     # this is called before the app starts
-    
+
     # set up the base directory
     if app.config['BASE_DIR'] == '':
         app.config['BASE_DIR'] = os.path.dirname(os.path.abspath(__file__))
-        
+
     # UPLOAD FOLDER will have to change based on your own needs/deployment scenario
     if app.config['UPLOAD_FOLDER'] == '':
         #app.config['UPLOAD_FOLDER'] = os.path.join(app.config['BASE_DIR'], './uploads')
         app.config['UPLOAD_FOLDER'] = './uploads'
-    
+
     # allowed file extensions of uploaded FILE
-    if app.config['ALLOWED_EXTENSIONS'] == '': 
+    if app.config['ALLOWED_EXTENSIONS'] == '':
         app.config['ALLOWED_EXTENSIONS'] = ['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif']
     else:
         if isinstance(app.config['ALLOWED_EXTENSIONS'], str):
             app.config['ALLOWED_EXTENSIONS'] = app.config['ALLOWED_EXTENSIONS'].split(',')
-    
+
     # we're using a separte function because it has hashing and checking
     admin=app.config['ADMIN_USERNAME']
     password = token_generator()
@@ -37,28 +37,28 @@ def initialize(app):
     u  = create_user(DB, username=admin,
                      password=password,
                      is_admin=True)
-        
+
     # These are the default HOME and ABOUT pages-- can be easily changed later.
     # will not overwrite existing home and about pages.
     p = DB.pages.find_one({'slug':app.config['FRONTPAGE_SLUG']})
     if p is None:
         # create only if page IS NOT present
         DB.pages.insert_one({'slug': app.config['FRONTPAGE_SLUG'], 'title':'Home', 'owner':admin,
-                             'content':'<b>Welcome, please change me.</b>  I am the <i>default</i> Home page!', 
+                             'content':'<b>Welcome, please change me.</b>  I am the <i>default</i> Home page!',
                              'is_markdown':False, 'owner':'admin', 'show_nav':True, 'is_published': True})
         print("default HOME page created")
-        
+
     p = DB.pages.find_one({'slug':'about'})
     if p is None:
         DB.pages.insert_one({'slug':'about', 'title':'About', 'owner':admin,
                              'content':'<b>Welcome</b>, please change me.  I am the <i>default</i> boilerplate About page.',
                              'is_markdown':False, 'owner':'admin', 'show_nav':True, 'is_published': True})
         print("default ABOUT page created")
-        
+
     m = DB.meta.find_one({})
     if m is None:
         DB.meta.insert_one({'brand':'FlaskPress', 'theme':'default'})
-        
+
 def generate_meta_info():
     """generate meta information about categories and menu pages, store in database"""
     # this should only be called after a page is created or modified
@@ -77,7 +77,7 @@ def generate_meta_info():
     meta['menu'] = menu
     # update meta
     DB.meta.update_one({'_id':meta['_id']}, meta)
-    
+
 ############### BLOG 2 META DEFAULTS #############
 # currently unused legacy section
 # once running, you can override these defaults

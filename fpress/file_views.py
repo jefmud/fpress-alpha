@@ -3,12 +3,12 @@
 ## file_upload_handler - allows files to be uploaded
 ## file_upload - access to uploaded files (better name here?)
 
-from __main__ import app
+from . import app
 import datetime
 from flask import flash, g, redirect, render_template, request, send_from_directory, url_for
 from flask_dropzone import Dropzone
 import os
-from utils import login_required
+from .utils import login_required
 from werkzeug.utils import secure_filename
 
 ### FILE UPLOADS PARAMETERS
@@ -58,7 +58,7 @@ def file_upload_handler():
                     os.makedirs(directory)
                 # finally, save the file AND create its resource object in database
                 file.save(pathname)
-                
+
                 # put our file reference into the database
                 local_filepath = os.path.join(subfolder, filename)
                 url = url_for('file_uploads', path=local_filepath)

@@ -8,7 +8,7 @@ from wtforms import (StringField, PasswordField, SubmitField,
 from flask_ckeditor import CKEditorField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError
 from werkzeug.security import generate_password_hash
-from utils import slugify
+from .utils import slugify
 import os
 
 theme_choices = [('default', 'default')]
@@ -32,7 +32,7 @@ class BaseForm(FlaskForm):
         for field_name in self._fields:
             if field_name not in field_names:
                 yield self[field_name]
-                
+
 def username_exists(form, field):
     """username_exists validator"""
     # make sure username is UNIQUE
@@ -40,13 +40,13 @@ def username_exists(form, field):
     if u:
         # user already exists, raise a validation error
         raise ValidationError("Username already exists!")
-    
+
 def autohash(form, field):
     """hash password if necessary"""
     # check hashing type, rehash if not hashed
     if not ('pbkdf2:sha256' in field.data):
         field.data = generate_password_hash(field.data)
-        
+
 def autoslug(form, field):
     """if slug is empty, autoslug it"""
     if field.data == "":
@@ -63,23 +63,23 @@ class FileForm(BaseForm):
     filepath = StringField('File Path')
     owner = StringField()
     submit = SubmitField('Save')
-    
+
 class UserExtrasForm(BaseForm):
     display_name = StringField('Display Name')
-    email = StringField('Email (optional)')    
+    email = StringField('Email (optional)')
     bio = CKEditorField('User Bio (optional)')
     avatar = StringField('Avatar Photo (optional)', description='URL or local photo id')
-    
+
 class UsernamePasswordForm(BaseForm):
     """simple form of username/password and datarequired validation"""
     username = StringField('Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
-    
+
 class UsernamePasswordFormValidate(BaseForm):
     username = StringField('Username', validators=[DataRequired(), username_exists])
     password = PasswordField('Password', validators=[DataRequired(), Length(min=5), EqualTo('password2', message='Password must match')])
     password2 = PasswordField('Confirm',)
-    
+
 class LoginForm(UsernamePasswordForm):
     submit = SubmitField('Login')
 
@@ -92,7 +92,7 @@ class AdminUsernamePasswordForm(UsernamePasswordForm):
     2) password is "autohashed" if it is not hashed/salted
     """
     password = StringField('Password', validators=[DataRequired(), autohash])
-    
+
 class AdminUserForm(AdminUsernamePasswordForm, UserExtrasForm):
     # combine UsernamePassword and UserExtras Form -- this also enforces order.
     is_admin = BooleanField('is admin')
@@ -111,20 +111,20 @@ class PageInfoForm(BaseForm):
     # markdown would be a good choice for unprivileged editors
     # but... we can put a safety filter on HTML as it goes into the database, it could strip script tags
     # is_markdown = BooleanField('use markdown format')
-    
+
 class PageForm(PageInfoForm):
     """Inherits PageInfoForm, non-HTML"""
     content = TextAreaField('Content', validators=[DataRequired()])
     submit = SubmitField('Save Page')
-    
+
 class HTMLPageForm(PageForm):
     """CKEditor content overrides content with the CKEditor HTML"""
     content = CKEditorField('Content', validators=[DataRequired()])
-    
+
 class AdminPageForm(PageForm):
     """Administor pages, hide the submit button in Flask-Admin interface"""
     submit = HiddenField() # hide the button
-    
+
 class AdminSiteMeta(BaseForm):
     """Site Meta form"""
     brand = StringField('Site Brand', validators=[DataRequired()])

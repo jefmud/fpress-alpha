@@ -1,9 +1,9 @@
 ####
 # FlaskPress Page Main View
-# 
+#
 # Routes and helper functions.
 #
-# Error handler (page not found)
+# Error handler (handles 404 page not found)
 #
 # Site route (for slug resolution)
 #
@@ -16,12 +16,12 @@
 # 2) A user specified name "MyPage" ==> /MyPage (note case will work if user specified)
 # 3) A "sluggified" title "A New Page" ==> "a-new-page" (sluggify is sort of a general convention)
 
-from __main__ import app
+from . import app
 from flask import abort, flash, g, render_template, session
 import datetime
-import database
-import details
-import utils
+from . import database
+from . import details
+from . import utils
 
 @app.errorhandler(404)
 def page_not_found(e):
@@ -39,28 +39,28 @@ def datetimeformat(value, format='%B %d, %Y'):
 def before_request():
     """tasks before request is executed"""
     g.db = database.DB
-    
+
     g.username = session.get('username')
     g.is_authenticated = session.get('is_authenticated')
     g.is_admin = session.get('is_admin')
     # not sure if macro_csrf_token is still needed
     g.macro_csrf_token = utils.token_generator(size=24)
     g.stylesheets = details.stylesheets
-    
+
     # get the "singular" record of meta data if it exists
     # (it should exist if initialized properly)
     meta = g.db.meta.find_one()
     if meta is None:
         # just in case there was NO meta information!
         meta = {}
-        
+
     # get this data from flaskpress meta
     g.editor = meta.get('editor', app.config['EDITOR'])
     g.theme = meta.get('theme',app.config['THEME'])
     g.brand = meta.get('brand', app.config['BRAND'])
     g.logo = meta.get('logo', app.config['LOGO'])
     g.stylesheet = meta.get('stylesheet', app.config['STYLESHEET'])
-    
+
     # menu/categories will be NONE until we generate some content
     g.menu = meta.get('menu')
     g.categories = meta.get('categories')
@@ -84,7 +84,7 @@ def get_featured_pages(exclude_id=None, count=5):
         return candidates[0:count]
     else:
         return candidates
-    
+
 # this is the general SITE route "catchment" for page view
 @app.route("/")
 @app.route("/<path:path>")
@@ -102,12 +102,12 @@ def site(path=None):
     page = g.db.pages.find_one({'slug': path})
     if page is None:
         abort(404)
-        
-    
+
+
     # get sidebars if any come from page object
     sidebar_right = g.db.pages.find_one({'slug':page.get('sidebar_right')})
     sidebar_left = g.db.pages.find_one({'slug':page.get('sidebar_left')})
-        
+
     ##### removed get shortcodes
     # shortcodes = find_shortcodes(page.get('content'))
     # modify page object with shortcode content directives, return new object
@@ -116,28 +116,28 @@ def site(path=None):
         page['alt_author'] = None
     if page.get('date') is None:
         page['date'] = None
-    
+
     # get owner's displayname if it exists
     owner = g.db.users.find_one({'username':page.get('owner')})
     if owner:
         page['displayname'] =  owner.get('displayname')
-        
+
     if page.get('show_snippets'):
         featured_pages = get_featured_pages(exclude_id=page.get('_id'))
     else:
         featured_pages = []
-    
+
     ## select underlying template
     theme_directory = 'themes/default'
     template_mod = page.get('template')
-    
+
     if template_mod:
         base_template = 'page_' + template_mod + '.html'
     else:
         base_template = 'page_one_column.html'
-    
+
     page_template = theme_directory + '/' + base_template
-    
+
     try:
         return render_template(page_template, page=page, featured_pages=featured_pages,
                                sidebar_right=sidebar_right, sidebar_left=sidebar_left)
