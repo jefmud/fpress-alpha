@@ -26,9 +26,8 @@ def admin_uploads_sync():
         if files:
             for filename in files:
                 # get the url/filepath
-                abs_path = posix_path(os.path.normpath(root), prefix='/')
-                url = posix_path(os.path.join(abs_path, filename))
-                filepath = posix_path(os.path.join(os.path.split(root)[1], filename))\
+                filepath = posix_path(os.path.join(os.path.split(root)[1], filename))
+                url = url_for('file_uploads', path=filepath)
                 # does this file exist in collection?
                 this_file = g.db.files.find_one({'url':url})
                 if this_file is None:

@@ -19,8 +19,7 @@ def initialize(app):
 
     # UPLOAD FOLDER will have to change based on your own needs/deployment scenario
     if app.config['UPLOAD_FOLDER'] == '':
-        #app.config['UPLOAD_FOLDER'] = os.path.join(app.config['BASE_DIR'], './uploads')
-        app.config['UPLOAD_FOLDER'] = './uploads'
+        app.config['UPLOAD_FOLDER'] = os.path.join(app.config['BASE_DIR'], './uploads')
 
     # allowed file extensions of uploaded FILE
     if app.config['ALLOWED_EXTENSIONS'] == '':

@@ -13,6 +13,7 @@ from .utils import cli_arg_exists, cli_arg_value
 
 from flask import Flask
 from .database import initialize, generate_meta_info
+import os
 
 
 ###############
@@ -20,6 +21,7 @@ from .database import initialize, generate_meta_info
 app = Flask(__name__)
 app.config.from_pyfile('app.cfg')
 app.secret_key = app.config['SECRET_KEY']
+os.chdir('fpress')
 
 ### DATABASE INITIALIZE, actually, we could embed the meta_info_call into the initialize
 initialize(app) # create a database if needed

@@ -88,7 +88,7 @@ def file_uploads(path):
     """serve up a file in our uploads"""
     # should refactor because sloppy use of magic-directory name '/uploads'
     # print("access path={}".format(path))
-    return send_from_directory(app.config['UPLOAD_FOLDER'], path)
+    return send_from_directory(app.config["UPLOAD_FOLDER"], path)
 
 @app.route('/upload')
 @login_required
