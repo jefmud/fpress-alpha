@@ -1,0 +1,15 @@
+{% extends 'layout.html' %}
+{% from 'page_helpers.html' import render_navbar, render_footer %}
+{% from 'macros.html' import checkbox, modal_upload %}
+{% block title %}Administer Files{% endblock %}
+{% block navbar %}
+{{ render_navbar() }}
+{% endblock %}
+{% block content %}
+<p>Warning: this feature is currently experimental.  Please make sure you have a backup of the database.</p>
+<p></p>
+<p></p>
+<p class="buttons">
+{{ modal_upload("file", "Upload-o-matic", action=url_for('database_upload_handler')) }}
+</p>
+{% endblock %}

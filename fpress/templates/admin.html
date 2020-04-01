@@ -1,0 +1,64 @@
+{% extends 'layout.html' %}
+{% from 'page_helpers.html' import render_navbar, render_footer %}
+{% from 'macros.html' import field, select %}
+{% block title %}{{g.brand}} Admininstration{% endblock %}
+{% block navbar %}
+{{ render_navbar() }}
+{% endblock %}
+{% block content %}
+    <div class="content">
+    <h3 class="subtitle">Administration Areas</h3>
+    
+<a href="{{ url_for('admin_users')}}" class="button is-primary">
+<span class="icon has-text is-large">
+  <i class="fas fa-address-card"></i>
+</span>
+&nbsp User Manager
+</a>
+
+<a href="{{ url_for('admin_pages')}}" class="button is-info">
+<span class="icon has-text is-large">
+  <i class="fas fa-file-alt"></i>
+</span>
+&nbsp All Pages
+</a>
+
+<a href="{{ url_for('admin_files')}}" class="button is-success">
+<span class="icon has-text is-large">
+  <i class="fas fa-folder-open"></i>
+</span>
+&nbsp Upload Manager
+</a>
+
+<a href="{{ url_for('admin_export_database')}}" class="button is-warning">
+<span class="icon has-text is-large">
+  <i class="fas fa-download"></i>
+</span>
+&nbsp Export Database
+</a>
+
+<a href="{{ url_for('admin_import_database')}}" class="button is-danger">
+<span class="icon has-text is-large">
+  <i class="fas fa-upload"></i>
+</span>
+&nbsp Import Database
+</a>
+
+    <hr>
+    <h2 class="subtitle">Blog Meta Information</h2>
+    <form method="POST">
+        {{ form.csrf_token }}
+        {{ field(name="editor", label="Preferred editor default (ckeditor) optional: summernote, tinymce)", value=g.editor) }}
+        {{ field(name="brand", label="Blog Brand Title", value=g.brand) }}
+        {# {{ field(name="stylesheet", label="stylesheet local or url", value=g.stylesheet)}} #}
+        {{ select(name="stylesheet", label="CDN for stylesheet", selections=stylesheets, value=g.stylesheet) }}
+        {# {{ ckeditor(name="about", label="About (goes on main page)", value='') }} #}
+        {{ field(name="logo", label="Logo Image File (leave blank for none)", value=g.logo)}}
+        <input type="submit" class="button is-primary">
+    </form>
+    </div>
+
+{% endblock %}
+{% block footer %}
+    {{ render_footer(g.color_mode) }}
+{% endblock %}

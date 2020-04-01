@@ -1,0 +1,65 @@
+{% extends 'layout.html' %}
+{% from 'page_helpers.html' import render_navbar, render_footer %}
+{% from 'macros.html' import checkbox, modal_upload %}
+{% block title %}Administer Files{% endblock %}
+{% block navbar %}
+{{ render_navbar() }}
+{% endblock %}
+{% block content %}
+
+
+
+<a href="{{ url_for('file_upload')}}" class="button is-primary">
+<span class="icon has-text is-large">
+  <i class="fas fa-plus"></i>
+</span>
+&nbsp Upload New File
+</a>
+
+<a href="{{ url_for('admin_export_uploads')}}" class="button is-info">
+<span class="icon has-text is-large">
+  <i class="fas fa-cloud-download-alt"></i>
+</span>
+&nbsp Export UPLOADS
+</a>
+
+<a href="{{ url_for('admin_uploads_sync')}}" class="button is-warning">
+<span class="icon has-text is-large">
+  <i class="fas fa-sync"></i>
+</span>
+&nbsp Sync Upload Folder
+</a>
+
+<div>&nbsp
+</div>
+<table class="table is-bordered">
+<tr>
+<th>Title</th>
+<th>Owner</th>
+<th>URL</th>
+<th>Actions</th>
+</tr>
+<tbody>
+{% for file in files %}
+  <tr>
+    <td>{{ file.title }}</td>
+    <td>{{ file.owner }}</td>
+    <td><a href="{{ file.url }}" target="_blank">{{ file.url }}</a></td>
+    <td>
+      <button onclick="copyTextToClipboard('{{ file.url }}')" class="button is-small is-success">Copy</button>&nbsp;&nbsp;&nbsp;
+      <a href="{{ url_for('file_edit', file_id=file._id) }}" class="button is-small is-primary">Edit</a>&nbsp;&nbsp;&nbsp;
+      <a href="{{ url_for('file_delete', file_id=file._id) }}" class="button is-small is-danger">Delete</a>
+    </td>
+  </tr>
+{% endfor %}
+</tbody>
+</table>
+{# a modal upload done by a simple macro #}
+{{ modal_upload("file", "FlaskPress upload-o-matic", action=url_for('file_upload_handler') ) }}
+{% endblock %}
+{% block footer %}
+    {{ render_footer(g.color_mode) }}
+{% endblock %}
+{% block scripts %}
+ <script src="{{url_for('static', filename='js/copyTextToClipboard.js')}}"></script>
+{% endblock %}

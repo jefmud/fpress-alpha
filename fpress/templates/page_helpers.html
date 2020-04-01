@@ -1,0 +1,131 @@
+{% macro render_featured(pages=[]) %}
+    {# render snippets of featured pages #}
+    <div style="clear:both;">
+    <div><p>&nbsp;</p></div>
+    <hr>
+    <h3>Featured Articles</h3>
+    <div><p>&nbsp;</p></div>
+    {% for page in pages %}
+        <div class="card">
+            <div class="card-content">
+                <h3 class="subtitle"><a href="{{ page.slug }}">{{ page.title }}</a></h3>
+                <p class="is-small">
+                    {{ render_author(page) }}
+                </p>
+                <p>
+                    {{ page.snippet | safe }} <a href="{{ page.slug }}"> more...</a>
+                </p>
+            </div>
+        </div>
+        <div><p>&nbsp;</p></div>
+    {% endfor %}
+    </div>
+{% endmacro %}
+
+{% macro render_footer(category="is-default") %}
+<footer class="footer {{ category }}">
+  <div class="content has-text-centered">
+    <p>
+      <strong>{{g.brand}}</strong> by <a href="https://flaskpress.org">Jeff et. al.</a>. The source code is licensed
+      <a href="http://opensource.org/licenses/mit-license.php">MIT</a>. The website content
+      is licensed <a href="http://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY NC SA 4.0</a>.
+    </p>
+    {% for item in g.menu %}
+        <span>| <a href="{{ url_for('site', path=item[1])}}">{{ item[0] }}</a> |</span>
+    {% endfor %}
+    {% if session['is_admin'] %}
+            <span>| <a href="{{ url_for('admin') }}">Admin</a> |</span>
+      {% endif %}
+      {% if session['is_authenticated'] %}
+            <span>| <a href="{{ url_for('page_edit') }}">Create</a> |</span>
+            <span>| <a href="{{ url_for('logout') }}">Logout</a> |</span>
+      {% else %}
+          <span>| <a href="{{ url_for('login') }}">Login</a> |</span>
+      {% endif %}
+  </div>
+</footer>
+{% endmacro %}
+
+{% macro render_navbar() %}
+<nav class="main-nav navbar" role="navigation" aria-label="dropdown navigation">
+<div class="container">
+    {# brand "homepage" #}
+    {% if g.logo %}
+        <a href="{{ url_for('site') }}"><img src="{{ g.logo }}" alt="{{ g.brand }}"></a>
+    {% else %}
+    <div class="navbar-item">
+            <a href="{{ url_for('site') }}"><strong>{{ g.brand }}</strong></a
+    </div>
+    {% endif %}
+    {# dynamically generated menu items #}
+    {% for item in g.menu %}
+        <div class="navbar-item">
+            <a href="{{ url_for('site', path=item[1])}}">{{ item[0] }}</a>
+        </div>
+    {% endfor %}
+    
+    <div class="navbar-item navbar-end">
+        <form action="{{ url_for('search') }}" method="GET">
+            <div class="field is-grouped">
+              <p class="control is-expanded">
+                <input class="input" type="text" name="s" placeholder="Search term">
+              </p>
+              <p class="control">
+                <button type="submit" class="button is-info">
+                  Search
+                </button>
+              </p>
+            </div>
+        </form>
+    </div>
+    {% if session['is_admin'] %}
+        <div class="navbar-item">
+            <a href="{{ url_for('admin') }}">Admin</a>
+        </div>
+      {% endif %}
+      {% if session['is_authenticated'] %}
+        <div class="navbar-item">
+            <a href="{{ url_for('page_edit') }}">Create</a>
+        </div>
+        <div class="navbar-item">
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+      {% else %}
+      <div class="navbar-item">
+          <a href="{{ url_for('login') }}">Login</a>
+      </div>
+      {% endif %}
+    
+  </div>
+</nav>
+{% endmacro %}
+
+{% macro render_utility_navbar(category="is-light") %}
+<div class="container">
+  <nav class="navbar {{category}}" role="navigation" aria-label="dropdown navigation">
+    
+    <div class="navbar-item">
+        <a href="{{ url_for('site') }}"><strong>{{ g.brand }}</strong></a>
+    </div>
+    
+    <div class="navbar-item">
+    </div>
+    
+  </nav>
+</div>
+{% endmacro %}
+
+{% macro render_author(page) %}
+    <p>
+    {% if page.alt_author %}
+        <i>by {{ page.alt_author }}</i>
+    {% elif page.displayname %}
+        <i>by {{ page.displayname }}</i>
+    {% else %}
+        <i>by {{ page.owner }}</i>
+    {% endif %}
+    {% if page.created_at %}
+        <i>on {{ page.created_at|datetimeformat }}</i>
+    {% endif %}
+    </p>
+{% endmacro %}

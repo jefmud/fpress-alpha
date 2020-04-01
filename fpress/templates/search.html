@@ -1,0 +1,20 @@
+{% extends 'layout.html' %}
+{% from 'page_helpers.html' import render_navbar, render_footer %}
+{% block title %}{{ g.brand }}{% endblock %}
+{% block navbar %}
+    {# navigation #}
+    {{ render_navbar() }}
+{% endblock %}
+{% block content %}
+<div class="content">
+    <h1 class="title">Search results for "{{ search_term }}"</h1>
+    <ol>
+        {% for page in pages %}
+            <li><b><a href="{{ page.slug }}">{{ page.title }}</a></b><p>{{ page.snippet | safe }}</p></li>
+        {% endfor %}
+    </ol>
+</div>
+{% endblock %}
+{% block footer %}
+{{ render_footer() }}
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends "bootstrap_layout.html" %}
+{% from 'bootstrap_macros.html' import field, summernote, checkbox, select %}
+{% from 'page_helpers.html' import render_utility_navbar %}
+{% block title %}Edit page{% endblock %}
+{% block navbar %}
+    {# navigation #}
+    {{ render_utility_navbar() }}
+{% endblock %}
+{% block content %}
+<div class="content">
+<form method="post">
+    {{ form.csrf_token }}
+    {{ field(name="title", label="Page Title", value=page.title) }}
+    {{ field(name="slug", label="Page Slug (optional)", value=page.slug) }}
+
+    <span>
+    {{ checkbox(name="is_published", label="Published", checked=page.is_published) }}
+    {{ checkbox(name="show_title", label="Show Title", checked=page.show_title) }}
+    {{ checkbox(name="show_nav", label="Show Navigation", checked=page.show_nav) }}
+    {{ checkbox(name="title_nav", label="Title Navigation", checked=page.title_nav) }}
+    {{ checkbox(name="is_sidebar", label="Is Sidebar Page", checked=page.is_sidebar) }}
+    {{ checkbox(name="show_snippets", label="Show featured article snippets", checked=page.show_snippets)}}
+    </span>
+    
+    {{ field(name="alt_author", label="Alternate Author Name (optional)", value=page.alt_author) }}
+    
+
+    {{ summernote(name="content", label="Content", value=page.content) }}
+    
+    {# want the sidebars to be dropdowns later on #}
+    {{ select(name="stylesheet", label="CDN for stylesheet", selections=g.stylesheets, value=page.stylesheet) }}
+    {{ select(name="template", label="Template (optional)", selections=templates, value=page.template) }}
+    {{ field(name="sidebar_left", label="Sidebar LEFT slug (optional)", value=page.sidebar_left) }}
+    {{ field(name="sidebar_right", label="Sidebar RIGHT slug (optional)", value=page.sidebar_right) }}
+    {{ field(name="footer", label="Footer slug (optional)", value=page.footer) }}
+    <p>Categories: {{ g.categories }}</p>
+    {{ field(name="categories", label="Page Categories (optional: comma separated)", value=page.categories) }}
+    
+    <button type="submit" class="btn btn-primary">Save</button>
+    {% if page._id %}
+    {# a page without an id was freshley created, no DELETE button #}
+        <a href="{{ url_for('page_delete', page_id=page._id) }}" type="button" class="btn btn-danger">Delete</a>
+    {% endif %}
+
+</form>
+</div>
+{% endblock %}

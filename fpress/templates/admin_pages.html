@@ -1,0 +1,53 @@
+{% extends 'layout.html' %}
+{% from 'page_helpers.html' import render_navbar, render_footer %}
+{% from 'macros.html' import checkbox %}
+{% block title %}Administer Pages{% endblock %}
+{% block navbar %}
+{{ render_navbar() }}
+{% endblock %}
+{% block content %}
+
+<a href="{{ url_for('admin_page_export')}}" class="button is-info">
+<span class="icon has-text is-large">
+  <i class="fas fa-cloud-download-alt"></i>
+</span>
+&nbsp Export Pages
+</a>
+
+<a href="{{ url_for('page_edit')}}" class="button is-primary">
+<span class="icon has-text is-large">
+  <i class="fas fa-plus"></i>
+</span>
+&nbsp Add New Page
+</a>
+
+<div>&nbsp
+</div>
+<table class="table is-bordered">
+<tr>
+<th>Created</th>
+<th>Title</th>
+<th>Author</th>
+<th>Slug</th>
+<th>View</th>
+<th>Edit</th>
+<th>Delete</th>
+</tr>
+<tbody>
+{% for page in pages %}
+  <tr>
+    <td>{{ page.created_at }}</td>
+    <td>{{ page.title }}</td>
+    <td>{{ page.owner }}</td>
+    <td>{{ page.slug }}</td>
+    <td><a href="{{ url_for('site', path=page.slug) }}" class="button is-small is-primary">View</a></td>
+    <td><a href="{{ url_for('page_edit', page_id=page._id) }}" class="button is-small is-warning">Edit</a></td>
+    <td><a href="{{ url_for('page_delete', page_id=page._id) }}" class="button is-small is-danger">Delete</a></td>
+  </tr>
+{% endfor %}
+</tbody>
+</table>
+{% endblock %}
+{% block footer %}
+    {{ render_footer(g.color_mode) }}
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends 'layout.html' %}
+{% from 'page_helpers.html' import render_navbar, render_footer %}
+{% block title %}{{ g.brand }}{% endblock %}
+{% block navbar %}
+    {# navigation #}
+    {{ render_navbar() }}
+{% endblock %}
+{% block content %}
+<div class="content">
+<center><img src="{{ url_for('static', filename='images/404.png')}}"></center>
+
+<center><p>The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.</p>
+<p><strong><a href="{{ url_for("site") }}">Back to homepage</a></strong></p>
+</center>
+</div>
+{% endblock %}
+{% block footer %}
+{{ render_footer() }}
+{% endblock %}
